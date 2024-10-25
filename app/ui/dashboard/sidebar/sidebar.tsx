@@ -31,37 +31,43 @@ function Sidebar() {
         },
         {
           title: 'Teams',
-          path: '/dashboard/products',
+          path: '/dashboard/teams',
           icon: <MdShoppingBag />,
         },
-        {
-          title: 'Sponsors',
-          path: '/dashboard/products',
-          icon: <MdShoppingBag />,
-        },
+
         {
           title: 'Players',
-          path: '/dashboard/products',
+          path: '/dashboard/players',
+          icon: <MdShoppingBag />,
+        },
+        {
+          title: 'Captains',
+          path: '/dashboard/captains',
+          icon: <MdShoppingBag />,
+        },
+        {
+          title: 'Coaches',
+          path: '/dashboard/coaches',
           icon: <MdShoppingBag />,
         },
         {
           title: 'Commentators',
-          path: '/dashboard/products',
+          path: '/dashboard/commentators',
           icon: <MdShoppingBag />,
         },
         {
           title: 'Matches',
-          path: '/dashboard/products',
+          path: '/dashboard/matches',
           icon: <MdShoppingBag />,
         },
         {
           title: 'Referees',
-          path: '/dashboard/products',
+          path: '/dashboard/referees',
           icon: <MdShoppingBag />,
         },
         {
           title: 'Venues',
-          path: '/dashboard/products',
+          path: '/dashboard/venues',
           icon: <MdShoppingBag />,
         },
         {

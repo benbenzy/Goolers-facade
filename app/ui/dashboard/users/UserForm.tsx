@@ -12,7 +12,7 @@ const UserForm: FC<FormProps> = ({ submit, isEditting }) => {
 
   return (
     <form
-      className="grid grid-cols-2  gap-5 m-5 items-center text-slate-900"
+      className="grid grid-cols-2  gap-5 m-5 items-center text-slate-200"
       onSubmit={handleSubmit(submit)}
     >
       <input
@@ -46,15 +46,15 @@ const UserForm: FC<FormProps> = ({ submit, isEditting }) => {
         id=""
       >
         <option value="">select role</option>
-        <option value="ADMIN">admin</option>
-        <option value="AUTHOR">author</option>
-        <option value="CUSTOMER_SUPPORT">support</option>
-        <option value="MARKETTING">marketting</option>
+        <option value="ADMIN">ADMIN</option>
+        <option value="AUTHOR">AUTHOR</option>
+        <option value="CUSTOMER_SUPPORT">SUPPORT</option>
+        <option value="MARKETTING">MARKETTING</option>
         <option value="SALES">SALES</option>
         <option value="FINANCE">FINANCE</option>
         <option value="RESEARCH"> RESEARCH</option>
         <option value="PUBLISHERS">PUBLISHERS</option>
-        <option value="EDITOR">EDiTOR</option>
+        <option value="EDITOR">EDITOR</option>
         <option value="AGENT">AGENT</option>
       </select>
 

@@ -31,7 +31,7 @@ function LeaguesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('leagues')
-        .select('*,counties(name),constituencies(name),wards(name)')
+        .select('*')
         .order('created_at', { ascending: false });
       if (error) {
         console.log('error fetching leagues', error.message);
@@ -123,9 +123,9 @@ function LeaguesPage() {
                 <td>{new Date(item?.start_date).toDateString()}</td>
                 <td>{new Date(item?.end_date).toDateString()}</td>
                 <td>{item?.counties?.name}</td>
-                <td>{item?.constituencies?.name}</td>
-                <td>{item?.wards?.name}</td>
-                <td>{item?.startes ? 'live' : 'coming soon'}</td>
+                <td>{item?.sub_county}</td>
+                <td>{item?.ward}</td>
+                <td>{item?.started ? 'live' : 'coming soon'}</td>
                 <td>
                   <MdMoreVert
                     size={25}

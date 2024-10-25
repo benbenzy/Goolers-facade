@@ -19,7 +19,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const { email, phone, firstName, lastName, role } = await req.json();
-    const password = `${process.env.AUTH_SECRET}${role}`;
+    const password = `goolers_facade${role}`;
 
     const {
       data: { user },
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       user_metadata: {
         firstName,
         lastName,
+        role,
         full_name: firstName + ' ' + lastName,
       },
     });

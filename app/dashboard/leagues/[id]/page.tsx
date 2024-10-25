@@ -1,5 +1,6 @@
 'use client';
 import RemoteImage from '@/app/ui/dashboard/remoteImage/RemoteImage';
+import { TablesInsert } from '@/database.types';
 import { createClient } from '@/utils/supabase/client';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -27,7 +28,7 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
   const pathname = usePathname();
   const supabase: SupabaseClient = createClient();
   const [image, setImage] = useState<File | any>(null);
-  const [course, setCourse] = useState<any>();
+  const [league, setLeague] = useState<any>();
   const [onEdit, setOnEdit] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -39,7 +40,7 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
     queryFn: async () => {
       const { data: loadCourse, error } = await supabase
         .from('leagues')
-        .select('*,league_teams()')
+        .select('*,league_teams(*,teams(*))')
         .eq('id', id)
         .single();
       if (error) {
@@ -49,13 +50,13 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
     },
   });
   useEffect(() => {
-    setCourse(data);
+    setLeague(data);
   }, [data]);
 
   const uploadImage = async () => {
     setUploading(true);
     const fileExt = image?.name?.split('.').pop();
-    const filePath = `${course?.id}-${Math.random()}.${fileExt}`;
+    const filePath = `${league?.id}-${Math.random()}.${fileExt}`;
     const { data, error } = await supabase.storage
       .from('league_posters')
       .upload(filePath, image);
@@ -68,7 +69,7 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
       const { data: courseUpdate, error: courseUpdateError } = await supabase
         .from('leagues')
         .update({ poster: data.path })
-        .eq('id', course?.id);
+        .eq('id', league?.id);
       if (courseUpdateError) {
         console.log('could not update league', courseUpdateError);
         setUploading(false);
@@ -85,17 +86,19 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
     isPending: updating,
     isSuccess: updatesuccess,
   } = useMutation({
-    mutationFn: async (course: any) => {
+    mutationFn: async (league: TablesInsert<'leagues'>) => {
       const { data, error } = await supabase
         .from('leagues')
         .update({
-          title: course?.title,
-          description: course?.description,
-          price: course?.price,
-          audience: course?.audience,
-          duration: course?.duration,
+          name: league.name,
+          budget: league.budget,
+          start_date: league.start_date,
+          end_date: league.end_date,
+          ward_id: league?.ward,
+          constituency_id: league?.sub_county,
+          county_id: league?.county,
         })
-        .eq('id', course?.id);
+        .eq('id', league?.id);
       if (error) {
         throw new Error('error upadating course');
       }
@@ -104,24 +107,22 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
   });
 
   const handleUpdate = () => {
-    updateCourse(course);
+    updateCourse(league);
   };
-  function handleDelete() {
-    deleteChapter();
+  function handleDelete(id: string) {
+    deleteTeam(id);
   }
   const {
-    mutate: deleteChapter,
+    mutate: deleteTeam,
     isError: deleteChapterError,
     isPending: deleting,
     isSuccess: deletesuccess,
   } = useMutation({
-    mutationFn: async () => {
-      console.log('deleting chapter');
+    mutationFn: async (id: string) => {
       const { data, error } = await supabase
-        .from('chapters')
+        .from('league_teams')
         .delete()
-        .eq('id', selectedChapter)
-        .select();
+        .eq('id', id);
       if (error) {
         console.log('failed to delete chapter', error.message);
         throw new Error(`failed to delete chapter ${error.message}`);
@@ -129,43 +130,10 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course', id] });
+      queryClient.invalidateQueries({ queryKey: ['leagues', id] });
     },
   });
-  const {
-    mutate: uploadChapter,
-    isPending: uploadingChapter,
-    isSuccess: uploadChapterSuccess,
-  } = useMutation({
-    mutationFn: async ({ title }: { title: string }) => {
-      try {
-        const { data, error } = await supabase
-          .from('chapters')
-          .insert({
-            title,
-            course_id: course?.id,
-          })
-          .select('*');
-        if (error) {
-          throw new Error('failed to create chapter');
-        }
-        return data;
-      } catch (error) {
-        throw new Error('failed to upload chapter');
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course', id] });
-    },
-  });
-  function createChapter() {
-    let title = prompt('Enter chapter title');
-    if (title == null || title == '') {
-      throw new Error('user cancelled process');
-    } else {
-      uploadChapter({ title });
-    }
-  }
+
   const queryClient = useQueryClient();
 
   return (
@@ -191,20 +159,7 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
           </div>
         </div>
       )}
-      {uploadingChapter && (
-        <div className="toast">
-          <div className="alert alert-success">
-            <span>creating chapter... </span>
-          </div>
-        </div>
-      )}
-      {uploadChapterSuccess && (
-        <div className="toast">
-          <div className="alert alert-success">
-            <span>chapter created </span>
-          </div>
-        </div>
-      )}
+
       {deleteChapterError && (
         <div className="toast">
           <div className="alert alert-error">
@@ -229,11 +184,11 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
       <div className="flex flex-row justify-between">
         <div className="w-1/4 ">
           <RemoteImage
-            path={`${course?.thumbnail}`}
+            path={`${league?.poster}`}
             fallback="/noproduct.jpg"
             size={120}
             className=" w-56 h-3/4"
-            bucket={'course_thumbnails'}
+            bucket={'league_posters'}
             alt={''}
             onClick={() => imageRef?.current?.click()}
             uploadImage={image}
@@ -271,66 +226,85 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
         </div>
         <div className="flex flex-col gap-4 flex-1">
           <div className="flex flex-col">
-            <label htmlFor="">Title</label>
+            <label htmlFor="">Name</label>
             <input
               type="text"
               className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
-              value={course?.title}
+              value={league?.name}
               onChange={(e) => {
-                setOnEdit(true),
-                  setCourse({ ...course, title: e.target.value });
+                setOnEdit(true), setLeague({ ...league, name: e.target.value });
               }}
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="">Description</label>
-            <textarea
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
-              name="description"
-              id=""
-              value={course?.description}
-              onChange={(e) => {
-                setOnEdit(true),
-                  setCourse({ ...course, description: e.target.value });
-              }}
-              cols={10}
-              rows={5}
-            ></textarea>
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="">Audience</label>
+            <label htmlFor="">County</label>
             <input
               type="text"
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={league?.county}
               onChange={(e) => {
                 setOnEdit(true),
-                  setCourse({ ...course, audience: e.target.value });
+                  setLeague({ ...league, county: e.target.value });
               }}
-              value={course?.audience}
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="">Duration</label>
+            <label htmlFor="">Sub-County</label>
             <input
               type="text"
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={league?.sub_county}
               onChange={(e) => {
                 setOnEdit(true),
-                  setCourse({ ...course, duration: e.target.value });
+                  setLeague({ ...league, sub_county: e.target.value });
               }}
-              value={course?.duration}
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="">Price</label>
+            <label htmlFor="">Ward</label>
             <input
               type="text"
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={league?.ward}
+              onChange={(e) => {
+                setOnEdit(true), setLeague({ ...league, ward: e.target.value });
+              }}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="">Budget</label>
+            <input
+              type="text"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={league?.budget}
               onChange={(e) => {
                 setOnEdit(true),
-                  setCourse({ ...course, price: e.target.value });
+                  setLeague({ ...league, budget: e.target.value });
               }}
-              value={course?.price}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="">Start Date</label>
+            <input
+              type="date"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={league?.start_date}
+              onChange={(e) => {
+                setOnEdit(true),
+                  setLeague({ ...league, start_date: e.target.value });
+              }}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="">End Date</label>
+            <input
+              type="date"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={league?.end_date}
+              onChange={(e) => {
+                setOnEdit(true),
+                  setLeague({ ...league, start_date: e.target.value });
+              }}
             />
           </div>
         </div>
@@ -345,95 +319,56 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
         </button>
       )}
       <div className="flex flex-row justify-between m-5">
-        <div className=" font-bold uppercase underline">chapters</div>
+        <div className=" font-bold uppercase underline">Registered Teams</div>
 
-        <button onClick={() => createChapter()} className="btn btn-neutral">
-          New Chapter
-        </button>
+        <Link href={`/dashboard/leagues/${id}/newTeam`}>Add Team</Link>
       </div>
       <table className="table table-xs">
         <thead>
           <tr>
             <th></th>
-            <th>title</th> <th>createdAt</th> <th>reviewed</th>
-            <th>completed</th> <th>actions</th>
+            <th>Name</th> <th>createdAt</th> <th>reviewed</th>
+            <th>actions</th>
           </tr>
         </thead>
         <tbody>
-          {course?.chapters?.map((item: any, index: number) => (
+          {league?.league_teams?.map((item: any, index: number) => (
             <tr key={item.id}>
               <td>{index + 1}</td>
               <td>
-                <div>{item?.title}</div>
+                <div>{item?.teams?.name}</div>
               </td>
               <td>
                 <div>{new Date(item?.created_at).toDateString()}</div>
               </td>
               <td>
-                <div>
-                  {item?.published ? (
-                    <MdCheckBox />
-                  ) : (
-                    <MdCheckBoxOutlineBlank />
-                  )}
+                <div>{item?.reviewed ? 'reviewed' : 'pending'}</div>
+              </td>
+
+              <td>
+                <div className="flex flex-row items-center gap-5">
+                  <Link
+                    className="btn btn-success"
+                    href={{
+                      pathname: `/dashboard/teams/${item?.teams?.id}`,
+                    }}
+                  >
+                    open
+                  </Link>
+                  <button
+                    className="btn btn-error"
+                    onClick={() => {
+                      const text = 'do you want to remove item';
+                      if (confirm(text) === true) {
+                        handleDelete(item?.id);
+                      } else {
+                        return;
+                      }
+                    }}
+                  >
+                    Remove
+                  </button>
                 </div>
-              </td>
-
-              <td>
-                <div>{item?.published ? 'reviwed' : 'complete'}</div>
-              </td>
-              <td>
-                <button
-                  onClick={() => {
-                    selectedChapter == item.id
-                      ? setSelectedChapter('')
-                      : setSelectedChapter(item.id);
-                  }}
-                >
-                  <MdMoreVert />
-                </button>
-                {selectedChapter == item.id && (
-                  <div className="flex flex-col gap-2 absolute bg-slate-700">
-                    <Link
-                      href={{
-                        pathname: `/dashboard/products/${id}/newChapter`,
-                        query: {
-                          requestType: 'edit',
-                          courseId: id,
-                          chapterId: selectedChapter,
-                        },
-                      }}
-                    >
-                      <button
-                        onClick={() => {}}
-                        className="flex flex-row items-center gap-2 text-green-500 hover:bg-slate-400 hover:cursor-pointer"
-                      >
-                        <MdRemoveRedEye /> open
-                      </button>
-                    </Link>
-
-                    <button
-                      onClick={() => {}}
-                      className="flex flex-row items-center gap-2 text-green-500 hover:bg-slate-400 hover:cursor-pointer"
-                    >
-                      <MdEdit /> edit title
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        let text = 'confirm delete';
-                        if (confirm(text) == true) {
-                          handleDelete();
-                        } else {
-                          text = 'You canceled!';
-                        }
-                      }}
-                      className="flex flex-row gap-2 items-center text-red-500 hover:bg-slate-400 hover:cursor-pointer"
-                    >
-                      <MdDelete /> delete
-                    </button>
-                  </div>
-                )}
               </td>
             </tr>
           ))}

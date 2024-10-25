@@ -1,10 +1,10 @@
 'use client';
 import RemoteImage from '@/app/ui/dashboard/remoteImage/RemoteImage';
+import { TablesInsert } from '@/database.types';
 import { createClient } from '@/utils/supabase/client';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -24,11 +24,11 @@ interface CourseDetailsProps {
   };
 }
 
-const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
+const TeamDeatilsPage: FC<CourseDetailsProps> = () => {
   const pathname = usePathname();
   const supabase: SupabaseClient = createClient();
   const [image, setImage] = useState<File | any>(null);
-  const [course, setCourse] = useState<any>();
+  const [team, setTeam] = useState<any>();
   const [onEdit, setOnEdit] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -36,11 +36,11 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
   const id = pathname.split('/').pop();
 
   const { data } = useQuery({
-    queryKey: ['course', id],
+    queryKey: ['teams', id],
     queryFn: async () => {
       const { data: loadCourse, error } = await supabase
-        .from('courses')
-        .select('*,chapters(*)')
+        .from('teams')
+        .select('*,players(*),wards(*),counties(*),constituencies(*)')
         .eq('id', id)
         .single();
       if (error) {
@@ -50,15 +50,15 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
     },
   });
   useEffect(() => {
-    setCourse(data);
+    setTeam(data);
   }, [data]);
 
   const uploadImage = async () => {
     setUploading(true);
     const fileExt = image?.name?.split('.').pop();
-    const filePath = `${course?.id}-${Math.random()}.${fileExt}`;
+    const filePath = `${team?.id}-${Math.random()}.${fileExt}`;
     const { data, error } = await supabase.storage
-      .from('course_thumbnails')
+      .from('league_posters')
       .upload(filePath, image);
     if (error) {
       setUploading(false);
@@ -67,11 +67,11 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
     }
     if (data?.path) {
       const { data: courseUpdate, error: courseUpdateError } = await supabase
-        .from('courses')
-        .update({ thumbnail: data.path })
-        .eq('id', course?.id);
+        .from('leagues')
+        .update({ poster: data.path })
+        .eq('id', team?.id);
       if (courseUpdateError) {
-        console.log('could not update course', courseUpdateError);
+        console.log('could not update league', courseUpdateError);
         setUploading(false);
         setImage(null);
       }
@@ -86,17 +86,19 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
     isPending: updating,
     isSuccess: updatesuccess,
   } = useMutation({
-    mutationFn: async (course: any) => {
+    mutationFn: async (league: TablesInsert<'leagues'>) => {
       const { data, error } = await supabase
-        .from('courses')
+        .from('leagues')
         .update({
-          title: course?.title,
-          description: course?.description,
-          price: course?.price,
-          audience: course?.audience,
-          duration: course?.duration,
+          name: league.name,
+          budget: league.budget,
+          start_date: league.start_date,
+          end_date: league.end_date,
+          ward_id: league.ward,
+          constituency_id: league?.sub_county,
+          county_id: league.county,
         })
-        .eq('id', course?.id);
+        .eq('id', league?.id);
       if (error) {
         throw new Error('error upadating course');
       }
@@ -105,13 +107,13 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
   });
 
   const handleUpdate = () => {
-    updateCourse(course);
+    updateCourse(team);
   };
   function handleDelete() {
-    deleteChapter();
+    deleteTeam();
   }
   const {
-    mutate: deleteChapter,
+    mutate: deleteTeam,
     isError: deleteChapterError,
     isPending: deleting,
     isSuccess: deletesuccess,
@@ -133,40 +135,7 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
       queryClient.invalidateQueries({ queryKey: ['course', id] });
     },
   });
-  const {
-    mutate: uploadChapter,
-    isPending: uploadingChapter,
-    isSuccess: uploadChapterSuccess,
-  } = useMutation({
-    mutationFn: async ({ title }: { title: string }) => {
-      try {
-        const { data, error } = await supabase
-          .from('chapters')
-          .insert({
-            title,
-            course_id: course?.id,
-          })
-          .select('*');
-        if (error) {
-          throw new Error('failed to create chapter');
-        }
-        return data;
-      } catch (error) {
-        throw new Error('failed to upload chapter');
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course', id] });
-    },
-  });
-  function createChapter() {
-    let title = prompt('Enter chapter title');
-    if (title == null || title == '') {
-      throw new Error('user cancelled process');
-    } else {
-      uploadChapter({ title });
-    }
-  }
+
   const queryClient = useQueryClient();
 
   return (
@@ -192,20 +161,7 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
           </div>
         </div>
       )}
-      {uploadingChapter && (
-        <div className="toast">
-          <div className="alert alert-success">
-            <span>creating chapter... </span>
-          </div>
-        </div>
-      )}
-      {uploadChapterSuccess && (
-        <div className="toast">
-          <div className="alert alert-success">
-            <span>chapter created </span>
-          </div>
-        </div>
-      )}
+
       {deleteChapterError && (
         <div className="toast">
           <div className="alert alert-error">
@@ -230,11 +186,11 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
       <div className="flex flex-row justify-between">
         <div className="w-1/4 ">
           <RemoteImage
-            path={`${course?.thumbnail}`}
+            path={`${team?.poster}`}
             fallback="/noproduct.jpg"
             size={120}
             className=" w-56 h-3/4"
-            bucket={'course_thumbnails'}
+            bucket={'league_posters'}
             alt={''}
             onClick={() => imageRef?.current?.click()}
             uploadImage={image}
@@ -272,66 +228,59 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
         </div>
         <div className="flex flex-col gap-4 flex-1">
           <div className="flex flex-col">
-            <label htmlFor="">Title</label>
+            <label htmlFor="">Name</label>
             <input
               type="text"
               className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
-              value={course?.title}
+              value={team?.name}
               onChange={(e) => {
-                setOnEdit(true),
-                  setCourse({ ...course, title: e.target.value });
+                setOnEdit(true), setTeam({ ...team, name: e.target.value });
               }}
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="">Description</label>
-            <textarea
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
-              name="description"
-              id=""
-              value={course?.description}
-              onChange={(e) => {
-                setOnEdit(true),
-                  setCourse({ ...course, description: e.target.value });
-              }}
-              cols={10}
-              rows={5}
-            ></textarea>
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="">Audience</label>
+            <label htmlFor="">County</label>
             <input
               type="text"
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={team?.counties?.name}
               onChange={(e) => {
-                setOnEdit(true),
-                  setCourse({ ...course, audience: e.target.value });
+                setOnEdit(true), setTeam({ ...team, county: e.target.value });
               }}
-              value={course?.audience}
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="">Duration</label>
+            <label htmlFor="">Sub-County</label>
             <input
               type="text"
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={team?.constituencies?.name}
               onChange={(e) => {
                 setOnEdit(true),
-                  setCourse({ ...course, duration: e.target.value });
+                  setTeam({ ...team, sub_county: e.target.value });
               }}
-              value={course?.duration}
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="">Price</label>
+            <label htmlFor="">Ward</label>
             <input
               type="text"
-              className="text-slate-900 p-2 rounded-lg  dark:bg-slate-700  dark:text-slate-100"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={team?.wards?.name}
               onChange={(e) => {
-                setOnEdit(true),
-                  setCourse({ ...course, price: e.target.value });
+                setOnEdit(true), setTeam({ ...team, ward: e.target.value });
               }}
-              value={course?.price}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="">Balance</label>
+            <input
+              type="text"
+              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
+              value={team?.balance ?? 0}
+              onChange={(e) => {
+                setOnEdit(true), setTeam({ ...team, budget: e.target.value });
+              }}
             />
           </div>
         </div>
@@ -346,26 +295,27 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
         </button>
       )}
       <div className="flex flex-row justify-between m-5">
-        <div className=" font-bold uppercase underline">chapters</div>
-
-        <button onClick={() => createChapter()} className="btn btn-neutral">
-          New Chapter
-        </button>
+        <div className=" font-bold uppercase underline">Players</div>
+        <Link href={'/dashboard/players/new'}>
+          <button onClick={() => {}} className="btn btn-neutral">
+            Add Player
+          </button>
+        </Link>
       </div>
       <table className="table table-xs">
         <thead>
           <tr>
             <th></th>
-            <th>title</th> <th>createdAt</th> <th>reviewed</th>
+            <th>Name</th> <th>createdAt</th> <th>reviewed</th>
             <th>completed</th> <th>actions</th>
           </tr>
         </thead>
         <tbody>
-          {course?.chapters?.map((item: any, index: number) => (
-            <tr key={item.id}>
+          {team?.players?.map((item: any, index: number) => (
+            <tr key={item?.id}>
               <td>{index + 1}</td>
               <td>
-                <div>{item?.title}</div>
+                <div>{item?.name}</div>
               </td>
               <td>
                 <div>{new Date(item?.created_at).toDateString()}</div>
@@ -444,4 +394,4 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
   );
 };
 
-export default CourseDeatilsPage;
+export default TeamDeatilsPage;

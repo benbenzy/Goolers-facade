@@ -5,14 +5,7 @@ export type UserFormPost = {
   phone: string;
   role: string;
 };
-export type TeamFormPost = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  salary: string;
-  team: {};
-};
+
 export type CourseFormPost = {
   title: string;
   audience: string;
@@ -32,5 +25,20 @@ export type LeagueFormPost = {
   end_date: Number;
   ward_id: Number;
   constituency_id: string;
+  county_id: string;
+};
+export type TeamFormPost = {
+  name: string;
+  ward_id: Number;
+  sub_county_id: string;
+  county_id: string;
+};
+export type PlayerFormPost = {
+  name: string;
+  email: string;
+  phone: string;
+  team_id: string;
+  ward_id: Number;
+  sub_county_id: string;
   county_id: string;
 };

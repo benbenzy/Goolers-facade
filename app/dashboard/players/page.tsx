@@ -18,7 +18,7 @@ import {
   MdRemoveRedEye,
 } from 'react-icons/md';
 
-function ProductsPage() {
+function PlayersPage() {
   const [activeIndex, setActiveIndex] = useState('');
   const supabase = createClient();
 
@@ -27,14 +27,14 @@ function ProductsPage() {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['courses'],
+    queryKey: ['players'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('courses')
-        .select('*')
+        .from('players')
+        .select('*,profiles(*),counties(*),constituencies(*),wards(*),teams(*)')
         .order('created_at', { ascending: false });
       if (error) {
-        console.log('error fetching courses', error.message);
+        console.log('error fetching leagues', error.message);
       }
       return data;
     },
@@ -63,11 +63,11 @@ function ProductsPage() {
     <div className="bg-slate-800 rounded-md p-5 mt-5">
       <div className="flex flex-row items-center justify-between">
         <Suspense>
-          <Search placeholder="search plan by id" />
+          <Search placeholder="search league by name" />
         </Suspense>
-        <Link href={'/dashboard/products/add'}>
+        <Link href={'/dashboard/players/new'}>
           <button className="p-2 bg-slate-700 hover:bg-slate-500 cursor-pointer rounded-md text-slate-200 border-none">
-            New project
+            Add New
           </button>
         </Link>
       </div>
@@ -93,11 +93,14 @@ function ProductsPage() {
       <table className="bg-gray-600 rounded-md table w-full mt-5 p-4  ">
         <thead>
           <tr>
-            <td>Course</td>
-            <td>description</td>
-            <td>Status</td>
-            <td>Editor</td>
-            <td>Price</td>
+            <td>Name</td>
+            <td>created At</td>
+            <td>Team</td>
+            <td>Phone</td>
+            <td>County</td>
+            <td>Sub County</td>
+            <td>Ward</td>
+            <td>Conduct</td>
             <td>Action</td>
           </tr>
         </thead>
@@ -106,7 +109,7 @@ function ProductsPage() {
             courses?.map((item: any) => (
               <tr key={item?.id} className="m-5 hover  ">
                 <td className="w-32">
-                  <div className="flex items-center gap-3">
+                  {/* <div className="flex items-center gap-3">
                     <RemoteImage
                       size={0}
                       className="h-16 w-28 object-cover rounded-md"
@@ -115,36 +118,16 @@ function ProductsPage() {
                       path={item?.thumbnail}
                       alt={''}
                     />
-                  </div>
+                  </div> */}
+                  {item?.name}
                 </td>
-                <td className="w-1/3">
-                  <div className="flex flex-col gap-1 ">
-                    <div className="flex flex-row justify-between">
-                      <h3 className="text-lg">{item?.title}</h3>{' '}
-                    </div>
-                    <p className=" text-sm line-clamp-2">{item?.description}</p>
-                  </div>
-                </td>
-
-                <td>
-                  <div className=" flex flex-col gap-2">
-                    <span className="">
-                      {new Date(item?.created_at).toDateString()}
-                    </span>
-                    <span className="text-yellow-500 h-5 w-full rounded-lg self-center">
-                      {item?.status}
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div className=" flex flex-col gap-2">
-                    <span className="">{item?.editor}</span>
-                    <span className="text-yellow-500 h-5 w-full rounded-lg self-center">
-                      {item?.editor_status}
-                    </span>
-                  </div>
-                </td>
-                <td>{item.price}</td>
+                <td>{new Date(item?.created_at).toDateString()}</td>
+                <td>{item?.teams?.name}</td>
+                <td>{item?.phone}</td>
+                <td>{item?.counties?.name}</td>
+                <td>{item?.constituencies?.name}</td>
+                <td>{item?.wards?.name}</td>
+                <td>{item?.conduct}</td>
                 <td>
                   <MdMoreVert
                     size={25}
@@ -158,7 +141,7 @@ function ProductsPage() {
                     <div className="flex flex-col gap-2 absolute bg-slate-700">
                       <Link
                         href={{
-                          pathname: `/dashboard/products/${activeIndex}`,
+                          pathname: `/dashboard/players/${activeIndex}`,
                         }}
                       >
                         <button
@@ -194,4 +177,4 @@ function ProductsPage() {
   );
 }
 
-export default ProductsPage;
+export default PlayersPage;
