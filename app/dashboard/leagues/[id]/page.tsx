@@ -9,14 +9,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import React, { FC, useEffect, useRef, useState } from 'react';
-import {
-  MdCheckBox,
-  MdCheckBoxOutlineBlank,
-  MdDelete,
-  MdEdit,
-  MdMoreVert,
-  MdRemoveRedEye,
-} from 'react-icons/md';
 
 interface CourseDetailsProps {
   params: {
@@ -30,7 +22,6 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
   const [image, setImage] = useState<File | any>(null);
   const [league, setLeague] = useState<any>();
   const [onEdit, setOnEdit] = useState(false);
-  const [selectedChapter, setSelectedChapter] = useState('');
   const [uploading, setUploading] = useState(false);
   const imageRef = useRef<any>();
   const id = pathname.split('/').pop();
