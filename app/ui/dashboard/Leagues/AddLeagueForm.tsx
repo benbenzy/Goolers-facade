@@ -60,53 +60,56 @@ const AddLeagueForm: FC<props> = ({ submit }) => {
   return (
     <form
       onSubmit={handleSubmit(submit)}
-      className=" w-full gap-2 dark:text-slate-100 p-4 mt-5 flex flex-col "
+      className=" w-full gap-2 dark:text-slate-100 p-4 mt-5 flex flex-col items-center "
     >
-      <div className="w-full flex flex-row md:flex-row sm:flex-col gap-5 items-center">
-        <div className="flex flex-col items-center">
+      <div className="flex flex-col gap-5 ">
+        <div className="flex flex-row gap-5 items-center">
           League Name
           <input
             type="text"
             placeholder="name"
             required
-            className=" w-11s h-8 text-slate-900 rounded-md  dark:text-slate-100 dark:bg-slate-700"
+            className=" w-11s h-8 text-slate-900 rounded-mdw-1/2 dark:text-slate-100 dark:bg-slate-700"
             {...register('name')}
           />
         </div>
-        <div className="flex flex-col items-center">
-          League Budget
+
+        <div className="flex flex-row gap-5 items-center">
+          Budget
           <input
-            type="number"
+            type="text"
             placeholder="budget"
-            min={0}
+            required
+            className=" w-11s h-8 text-slate-900 rounded-md w-1/2 dark:text-slate-100 dark:bg-slate-700"
             {...register('budget')}
-            className="text-slate-900 rounded-md w-11s h-8 dark:text-slate-100 dark:bg-slate-700"
           />
         </div>
-        <div className="flex flex-col items-center">
-          Start Date
+        <div className="flex flex-row gap-5 items-center">
+          start Date
           <input
             type="date"
-            placeholder="start-date"
+            placeholder="name"
+            required
+            className=" w-11s h-8 text-slate-900 rounded-md w-1/2 dark:text-slate-100 dark:bg-slate-700"
             {...register('start_date')}
-            className="text-slate-900 rounded-md w-11s h-8  dark:bg-slate-700 dark:text-slate-100"
           />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-row gap-5 items-center">
           End Date
           <input
             type="date"
-            placeholder="end-date"
+            placeholder="name"
+            required
+            className=" w-11s h-8 text-slate-900 rounded-md w-1/2  dark:text-slate-100 dark:bg-slate-700"
             {...register('end_date')}
-            className="text-slate-900 rounded-md w-11s h-8  dark:bg-slate-700 dark:text-slate-100"
           />
         </div>
       </div>
-      <div className="flex flex-row gap-5">
+      <div className="flex flex-col gap-5">
         {countiesLoading ? (
           <div>county</div>
         ) : (
-          <div className="flex flex-col items-center">
+          <div className="flex flex-row gap-5 items-center">
             <label htmlFor="">County</label>
             <select
               {...register('county_id')}
@@ -127,7 +130,7 @@ const AddLeagueForm: FC<props> = ({ submit }) => {
         {constituenciesLoading ? (
           <div>sub-county</div>
         ) : (
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col ">
             Sub-County
             <select
               {...register('constituency_id')}
@@ -152,7 +155,7 @@ const AddLeagueForm: FC<props> = ({ submit }) => {
         {wardsLoading ? (
           <div>ward</div>
         ) : (
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col ">
             Ward
             <select
               {...register('ward_id')}

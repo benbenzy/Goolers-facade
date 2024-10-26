@@ -67,12 +67,12 @@ export async function updateSession (request:NextRequest) {
     }
   }
    // Fetch user profile to get the role
-   const role = user?.role
-  //  if (role === 'authenticated' && !request.nextUrl.pathname.startsWith("/")) {
+   const role = user?.user_metadata?.role
+  //  if (role === 'admin' && !request.nextUrl.pathname.startsWith("/")) {
   //   return NextResponse.redirect(new URL("/", request.url))
   // }
  
-  //  if (role === 'authenticated' && !request.nextUrl.pathname.startsWith("/dashboard")) {
+  //  if (role === 'admin' && !request.nextUrl.pathname.startsWith("/dashboard")) {
   //    return NextResponse.redirect(new URL("/dashboard", request.url))
   //  }
   //  if (role === 'author' && !request.nextUrl.pathname.startsWith("/author")) {

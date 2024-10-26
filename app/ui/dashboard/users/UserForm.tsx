@@ -47,7 +47,9 @@ const UserForm: FC<FormProps> = ({ submit, isEditting }) => {
       >
         <option value="">select role</option>
         <option value="ADMIN">ADMIN</option>
-        <option value="AUTHOR">AUTHOR</option>
+        <option value="AUTHOR">REFEREE</option>
+        <option value="PLAYER">PLAYER</option>
+        <option value="SPONSOR">SPONSOR</option>
         <option value="CUSTOMER_SUPPORT">SUPPORT</option>
         <option value="MARKETTING">MARKETTING</option>
         <option value="SALES">SALES</option>

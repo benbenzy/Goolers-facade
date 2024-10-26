@@ -13,7 +13,7 @@ export default async function Home() {
   ]);
   return (
     <main>
-      <Navbar />
+      <Navbar user={user} />
       <div className="mt-12 space-y-0 sm:mt-16 flex flex-wrap justify-center gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0">
         <Sliders products={products ?? []} user={user} />
       </div>

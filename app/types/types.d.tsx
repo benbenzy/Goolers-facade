@@ -55,3 +55,11 @@ export type PlayerFormPost = {
   sub_county_id: string;
   county_id: string;
 };
+export type RefereeFormPost = {
+  name: string;
+  email: string;
+  phone: string;
+  ward_id: Number;
+  sub_county_id: string;
+  county_id: string;
+};
