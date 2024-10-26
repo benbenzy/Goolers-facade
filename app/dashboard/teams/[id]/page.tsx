@@ -1,5 +1,7 @@
 'use client';
 import RemoteImage from '@/app/ui/dashboard/remoteImage/RemoteImage';
+import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import { TablesInsert } from '@/database.types';
 import { createClient } from '@/utils/supabase/client';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -227,73 +229,61 @@ const TeamDeatilsPage: FC<CourseDetailsProps> = () => {
           )}
         </div>
         <div className="flex flex-col gap-4 flex-1">
-          <div className="flex flex-col">
-            <label htmlFor="">Name</label>
-            <input
-              type="text"
-              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
-              value={team?.name}
-              onChange={(e) => {
-                setOnEdit(true), setTeam({ ...team, name: e.target.value });
-              }}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="">County</label>
-            <input
-              type="text"
-              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
-              value={team?.counties?.name}
-              onChange={(e) => {
-                setOnEdit(true), setTeam({ ...team, county: e.target.value });
-              }}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="">Sub-County</label>
-            <input
-              type="text"
-              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
-              value={team?.constituencies?.name}
-              onChange={(e) => {
-                setOnEdit(true),
-                  setTeam({ ...team, sub_county: e.target.value });
-              }}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="">Ward</label>
-            <input
-              type="text"
-              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
-              value={team?.wards?.name}
-              onChange={(e) => {
-                setOnEdit(true), setTeam({ ...team, ward: e.target.value });
-              }}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label htmlFor="">Balance</label>
-            <input
-              type="text"
-              className="text-slate-900 p-2 rounded-l dark:bg-slate-700  dark:text-slate-100"
-              value={team?.balance ?? 0}
-              onChange={(e) => {
-                setOnEdit(true), setTeam({ ...team, budget: e.target.value });
-              }}
-            />
-          </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <td>Details</td>
+                <td>
+                  <button
+                    onClick={() => {
+                      setOnEdit(true);
+                    }}
+                    className="btn btn-neutral"
+                  >
+                    update
+                  </button>
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Name</td> <td>{team?.name}</td>
+              </tr>
+              <tr>
+                <td>Captain</td>{' '}
+                <td>{team?.captains?.players?.name ?? 'no captain'}</td>
+              </tr>
+              <tr>
+                <td>County</td> <td>{team?.counties?.name}</td>
+              </tr>
+              <tr>
+                <td>Sub-County</td> <td>{team?.constituencies?.name}</td>
+              </tr>
+              <tr>
+                <td>Ward</td> <td>{team?.wards?.name}</td>
+              </tr>
+              <tr>
+                <td>Balance</td> <td>{team?.balance ?? 0}</td>
+              </tr>
+            </tbody>
+          </table>
+          <Modal onclose={() => setOnEdit(false)} show={onEdit}>
+            <div className="flex flex-col items-center justify-center ">
+              <Button
+                variant="flat"
+                type="submit"
+                className="mt-1 btn btn-primary"
+                disabled={false}
+                onClick={() => {}}
+                loading={true}
+              >
+                <label htmlFor="">submit</label>
+              </Button>
+            </div>
+          </Modal>
         </div>
       </div>
 
-      {onEdit && (
-        <button
-          onClick={handleUpdate}
-          className="w-full bg-blue-300 p-2 m-5 rounded-md"
-        >
-          update
-        </button>
-      )}
       <div className="flex flex-row justify-between m-5">
         <div className=" font-bold uppercase underline">Players</div>
         <Link href={'/dashboard/players/new'}>
@@ -364,13 +354,6 @@ const TeamDeatilsPage: FC<CourseDetailsProps> = () => {
                     </Link>
 
                     <button
-                      onClick={() => {}}
-                      className="flex flex-row items-center gap-2 text-green-500 hover:bg-slate-400 hover:cursor-pointer"
-                    >
-                      <MdEdit /> edit title
-                    </button>
-
-                    <button
                       onClick={() => {
                         let text = 'confirm delete';
                         if (confirm(text) == true) {
@@ -381,7 +364,7 @@ const TeamDeatilsPage: FC<CourseDetailsProps> = () => {
                       }}
                       className="flex flex-row gap-2 items-center text-red-500 hover:bg-slate-400 hover:cursor-pointer"
                     >
-                      <MdDelete /> delete
+                      <MdDelete /> remove
                     </button>
                   </div>
                 )}

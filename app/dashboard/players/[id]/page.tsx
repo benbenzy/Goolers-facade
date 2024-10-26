@@ -1,6 +1,7 @@
 'use client';
 import RemoteImage from '@/app/ui/dashboard/remoteImage/RemoteImage';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import { TablesInsert } from '@/database.types';
 import { createClient } from '@/utils/supabase/client';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -10,39 +11,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import React, { FC, useEffect, useRef, useState } from 'react';
-import {
-  MdCheckBox,
-  MdCheckBoxOutlineBlank,
-  MdDelete,
-  MdEdit,
-  MdMoreVert,
-  MdRemoveRedEye,
-} from 'react-icons/md';
-
 interface CourseDetailsProps {
   params: {
     courseId: string;
   };
 }
-const Modal = ({ children, show, onclose }: any) => {
-  return (
-    <dialog id="my_modal_3" className={`modal ${show ? 'modal-open' : ''}`}>
-      <div className="modal-box">
-        <form method="dialog">
-          {/* if there is a button in form, it will close the modal */}
-          <button
-            onClick={onclose}
-            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-          >
-            ✕
-          </button>
-        </form>
-        <h3 className="font-bold text-lg">update</h3>
-        {children}
-      </div>
-    </dialog>
-  );
-};
 
 const PlayerDeatilsPage: FC<CourseDetailsProps> = () => {
   const pathname = usePathname();

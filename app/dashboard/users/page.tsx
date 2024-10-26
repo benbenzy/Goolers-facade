@@ -7,6 +7,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import React, { Suspense, useState } from 'react';
 import {
+  MdCheckBoxOutlineBlank,
   MdDelete,
   MdMessage,
   MdMoreHoriz,
@@ -50,8 +51,18 @@ function UsersPage({ searchParams }: props) {
     },
   });
   const {
+    mutate: UpdateUser,
+    isPending: updateProgress,
+    isError: updateError,
+    isSuccess: updateSuccess,
+  } = useMutation({
+    mutationFn: async () => {
+      await axios.post(`/api/users/${selectedUser}`);
+    },
+  });
+  const {
     data: users,
-    isLoading,
+    isLoading: loadingusers,
     isError,
     error,
   } = useQuery({
@@ -64,34 +75,7 @@ function UsersPage({ searchParams }: props) {
       return data;
     },
   });
-  function formatDate(dat: Date) {
-    const date = new Date(dat);
-
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    const dayName = days[date.getDay()];
-    const monthName = months[date.getMonth()];
-    const day = date.getDate();
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-
-    return `${day} ${monthName} ${year} ${hours}:${minutes}`;
-  }
+  const isLoading = loadingusers || updateProgress;
 
   return (
     <div className="bg-slate-800 rounded-md p-5 mt-5">
@@ -142,7 +126,9 @@ function UsersPage({ searchParams }: props) {
               <tr key={item?.id} className="mt-2">
                 <td className="">{item?.full_name}</td>
                 <td className="">{item?.email}</td>
-                <td className="">{formatDate(item?.created_at)}</td>
+                <td className="">
+                  {new Date(item?.created_at).toDateString()}
+                </td>
                 <td className="">{item?.phone}</td>
                 <td className="">{item?.group}</td>
                 <td>
@@ -175,6 +161,12 @@ function UsersPage({ searchParams }: props) {
                         <MdPanoramaFishEye /> disable
                       </button>
                       <button
+                        onClick={() => UpdateUser()}
+                        className="flex flex-row gap-1 items-center  hover:bg-slate-600"
+                      >
+                        <MdCheckBoxOutlineBlank /> Admin
+                      </button>
+                      <button
                         onClick={handleDeleteUser}
                         className="flex flex-row gap-1 items-center hover:bg-slate-600"
                       >
@@ -188,7 +180,7 @@ function UsersPage({ searchParams }: props) {
         </tbody>
       </table>
       {isLoading && (
-        <div className="text-slate-100 font-bold m-5">loading users....</div>
+        <div className="text-slate-100 font-bold m-5">loading ....</div>
       )}
       {isError && (
         <div className="text-slate-100 font-bold m-5">
