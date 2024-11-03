@@ -38,8 +38,7 @@ function NewLeagueTeamPage() {
       const { data, error } = await supabase
         .from('teams')
         .select('*')
-        .eq('county', league?.county)
-        .eq('sub_county', league.sub_county)
+
         .eq('ward_id', league?.wards?.id)
         .not('id', 'in', `(${addedTeamsIds?.join(',')})`);
       if (error) {

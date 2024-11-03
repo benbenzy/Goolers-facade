@@ -31,7 +31,9 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
     queryFn: async () => {
       const { data: loadCourse, error } = await supabase
         .from('leagues')
-        .select('*,league_teams(*,teams(*))')
+        .select(
+          '*,league_teams(*,teams(*),groups(*)),groups(*,league_teams(*))'
+        )
         .eq('id', id)
         .single();
       if (error) {
@@ -126,6 +128,28 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
   });
 
   const queryClient = useQueryClient();
+  const promptAddGroup = () => {
+    let title = prompt('Enter chapter title');
+    if (title == null || title == '') {
+      throw new Error('user cancelled process');
+    } else {
+      createGroup({ title });
+    }
+  };
+  const { mutate: createGroup } = useMutation({
+    mutationFn: async ({ title }: { title: string }) => {
+      const { data, error } = await supabase
+        .from('groups')
+        .insert({ name: title, league_id: id, ward_id: league?.wards?.id });
+      if (error) {
+        console.log('failed to insert groups', error.message);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leagues', id] });
+    },
+  });
 
   return (
     <div>
@@ -310,15 +334,79 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
         </button>
       )}
       <div className="flex flex-row justify-between m-5">
+        <div className=" font-bold uppercase underline">League Groups</div>
+
+        <button
+          onClick={promptAddGroup}
+          className="p-2 bg-slate-700 hover:bg-slate-500 cursor-pointer rounded-md text-slate-200 border-none"
+        >
+          Add Group
+        </button>
+      </div>
+      <table className="table table-xs">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th> <th>createdAt</th> <th>teams</th>
+            <th>actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {league?.groups?.map((item: any, index: number) => (
+            <tr key={item.id}>
+              <td>{index + 1}</td>
+              <td>
+                <div>{item?.name}</div>
+              </td>
+              <td>
+                <div>{new Date(item?.created_at).toDateString()}</div>
+              </td>
+              <td>
+                <div>{item?.league_teams?.length}</div>
+              </td>
+
+              <td>
+                <div className="flex flex-row items-center gap-5">
+                  <Link
+                    className="btn btn-success"
+                    href={`/dashboard/leagues/${id}/${item.id}`}
+                  >
+                    open
+                  </Link>
+                  <button
+                    className="btn btn-error"
+                    onClick={() => {
+                      const text = 'do you want to remove item';
+                      if (confirm(text) === true) {
+                        handleDelete(item?.id);
+                      } else {
+                        return;
+                      }
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="flex flex-row justify-between m-5">
         <div className=" font-bold uppercase underline">Registered Teams</div>
 
-        <Link href={`/dashboard/leagues/${id}/newTeam`}>Add Team</Link>
+        <Link href={`/dashboard/leagues/${id}/newTeam`}>
+          <button className="p-2 bg-slate-700 hover:bg-slate-500 cursor-pointer rounded-md text-slate-200 border-none">
+            Add Teams
+          </button>
+        </Link>
       </div>
       <table className="table table-xs">
         <thead>
           <tr>
             <th></th>
             <th>Name</th> <th>createdAt</th> <th>reviewed</th>
+            <th>group</th>
             <th>actions</th>
           </tr>
         </thead>
@@ -335,6 +423,7 @@ const CourseDeatilsPage: FC<CourseDetailsProps> = () => {
               <td>
                 <div>{item?.reviewed ? 'reviewed' : 'pending'}</div>
               </td>
+              <td>{item?.groups?.name}</td>
 
               <td>
                 <div className="flex flex-row items-center gap-5">

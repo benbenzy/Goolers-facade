@@ -40,6 +40,7 @@ function TeamsPage() {
       <table className="bg-gray-600 rounded-md table w-full mt-5 p-4  ">
         <thead>
           <tr>
+            <td></td>
             <td>Name</td>
             <td>Created At</td>
             <td>County</td>
@@ -52,8 +53,9 @@ function TeamsPage() {
         </thead>
         <tbody>
           {Array.isArray(teams) &&
-            teams?.map((item: any) => (
+            teams?.map((item: any, index: number) => (
               <tr key={item?.id} className="m-5 hover  ">
+                <td>{index + 1}</td>
                 <td className="w-32">
                   {/* <div className="flex items-center gap-3">
                     <RemoteImage
